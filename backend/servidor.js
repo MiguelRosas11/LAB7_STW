@@ -1,60 +1,47 @@
-import http from "http"
+import express from "express"
 import fs from "fs/promises"
 import path from "path"
 
+const app = express()
 const PORT = 3000
 
-const server = http.createServer(async (req, res) => {
-  if (req.url === "/") {
-    res.writeHead(200, { "Content-Type": "text/plain" })
-    res.end("Servidor activo")
-    return
-  }
-
-  if (req.url === "/info") {
-    const info = {
-      mensaje: "Información del servidor",
-      curso: "Sistemas y Tecnologías Web",
-      tecnologia: "Node.js"
-    }
-
-    res.writeHead(200, { "Content-Type": "application/json" })
-    res.end(JSON.stringify(info))
-    return
-  }
-
-  if (req.url === "/saludo") {
-    res.writeHead(200, { "Content-Type": "text/plain" })
-    res.end("Hola, bienvenido al servidor")
-    return
-  }
-
-  if (req.url === "/api/status") {
-    const status = {
-      ok: true,
-      status: "Servidor funcionando correctamente",
-      puerto: PORT
-    }
-
-    res.writeHead(200, { "Content-Type": "application/json" })
-    res.end(JSON.stringify(status))
-    return
-  }
-
-  if (req.url === "/api/student") {
-    const filePath = path.join(process.cwd(), "datos.json")
-    const texto = await fs.readFile(filePath, "utf-8")
-    const data = JSON.parse(texto)
-
-    res.writeHead(200, { "Content-Type": "application/json" })
-    res.end(JSON.stringify(data))
-    return
-  }
-
-  res.writeHead(404, { "Content-Type": "text/plain" })
-  res.end(`Ruta no encontrada: ${req.url}`)
+app.get("/", (req, res) => {
+  res.send("Servidor activo")
 })
 
-server.listen(PORT, () => {
+app.get("/info", (req, res) => {
+  res.json({
+    mensaje: "Información del servidor",
+    curso: "Sistemas y Tecnologías Web",
+    tecnologia: "Node.js"
+  })
+})
+
+app.get("/saludo", (req, res) => {
+  res.send("Hola, bienvenido al servidor")
+})
+
+app.get("/api/status", (req, res) => {
+  res.json({
+    ok: true,
+    status: "Servidor funcionando correctamente",
+    puerto: PORT
+  })
+})
+
+app.get("/api/student", async (req, res) => {
+  const filePath = path.join(process.cwd(), "datos.json")
+  const texto = await fs.readFile(filePath, "utf-8")
+  const data = JSON.parse(texto)
+
+  res.json(data)
+})
+
+// 404
+app.use((req, res) => {
+  res.status(404).send(`Ruta no encontrada: ${req.url}`)
+})
+
+app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`)
 })
